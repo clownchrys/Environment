@@ -1,0 +1,11 @@
+.DS_Store
+.vscode
+.ipynb_checkpoints
+
+client/workspace/**
+mysql/data/**
+mongo/data/**
+
+!client/workspace/.keep
+!mysql/data/.keep
+!mongo/data/.keep

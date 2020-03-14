@@ -1,0 +1,69 @@
+version: "3.7"
+
+
+networks:
+    default:
+      ipam:
+        config:
+            - subnet: 172.18.0.0/24
+
+
+services:
+    client:
+        container_name: client
+        image: environment:client
+        build:
+            context: ./client
+            dockerfile: Dockerfile
+        env_file:
+            - ./.envs/client.env
+            - ./.envs/db_uri.env
+        volumes: 
+            - ./client/workspace:/root/workspace
+            - ./client/jupyter:/root/.jupyter
+        depends_on:
+            - mysql
+            - mongo
+        links: 
+            - mysql
+            - mongo
+        networks:
+            default:
+                ipv4_address: 172.18.0.2
+        ports: 
+            - 8888:8888
+
+    mysql:
+        container_name: mysql
+        image: environment:mysql
+        build: 
+            context: ./mysql
+            dockerfile: Dockerfile
+        env_file: 
+            - ./.envs/mysql.env
+        command: 
+            - --character-set-server=utf8mb4
+            - --collation-server=utf8mb4_unicode_ci
+        volumes: 
+            - ./mysql/data:/var/lib/mysql
+        networks:
+            default:
+                ipv4_address: 172.18.0.3
+        ports: 
+            - 3306:3306
+
+    mongo:
+        container_name: mongo
+        image: environment:mongo
+        build:
+            context: ./mongo
+            dockerfile: Dockerfile
+        env_file: 
+            - ./.envs/mongo.env
+        volumes: 
+            - ./mongo/data:/data/db
+        networks:
+            default:
+                ipv4_address: 172.18.0.4
+        ports: 
+            - 27017:27017

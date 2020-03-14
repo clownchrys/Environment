@@ -1,0 +1,29 @@
+# lint & formatter
+flake8==3.7.9
+black==19.10b0
+blackcellmagic==0.0.2
+rope==0.16.0
+
+# jupyter
+jupyter==1.0.0
+jupyter-client==6.0.0
+jupyter-console==6.1.0
+jupyter-core==4.6.3
+jupyterlab==1.2.6
+jupyterlab-server==1.0.7
+nbconvert==5.6.1
+
+# other packages
+PyMySQL==0.9.3
+pymongo==3.10.1
+scikit_learn==0.22.2
+numpy==1.18.1
+pandas==1.0.1
+openpyxl==3.0.3
+xlrd==1.2.0
+lxml==4.5.0
+html5lib==1.0.1
+selenium==3.141.0
+bs4==0.0.1
+matplotlib==3.2.0
+seaborn==0.10.0
