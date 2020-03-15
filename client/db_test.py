@@ -10,7 +10,7 @@ client.database_names()
 host, port = os.getenv("MYSQL_URI").split(":")
 conn = connect(
     host=host,
-    port=port,
+    port=int(port),
     user="root",
     password="",
     db="mysql",

@@ -2,8 +2,7 @@ FROM mongo:4-bionic
 
 # locale
 RUN apt update
-RUN apt install -y locales
-RUN locale-gen ko_KR.UTF-8
+RUN apt install -y locales-all
 
 # timezone
 ENV TZ=Asia/Seoul

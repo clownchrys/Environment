@@ -2,8 +2,7 @@ FROM mysql:8
 
 # locale
 RUN apt update
-RUN apt install -y locales
-RUN locale-gen ko_KR.UTF-8
+RUN apt install -y locales-all
 
 # timezone
 ENV TZ=Asia/Seoul

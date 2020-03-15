@@ -4,15 +4,6 @@ black==19.10b0
 blackcellmagic==0.0.2
 rope==0.16.0
 
-# jupyter
-jupyter==1.0.0
-jupyter-client==6.0.0
-jupyter-console==6.1.0
-jupyter-core==4.6.3
-jupyterlab==1.2.6
-jupyterlab-server==1.0.7
-nbconvert==5.6.1
-
 # other packages
 PyMySQL==0.9.3
 pymongo==3.10.1
