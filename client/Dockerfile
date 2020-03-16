@@ -75,6 +75,7 @@ jupyter labextension install jupyterlab-drawio --no-build && \
 jupyter lab build
 
 # Jupyter-nbconvert installation
+ADD ./nbconvert/base.tplx /.pyenv/versions/3.8.1/lib/python3.8/site-packages/nbconvert/templates/latex/
 RUN apt install -y \
 jupyter-nbconvert=5.3.1-1 \
 pandoc=1.19.2.4~dfsg-1build4 \
@@ -82,7 +83,8 @@ texlive-xetex=2017.20180305-1 \
 texlive-fonts-recommended=2017.20180305-1 \
 texlive-generic-recommended=2017.20180305-1 \
 texlive-generic-extra=2017.20180305-1 \
-texlive-extra-utils=2017.20180305-2
+texlive-extra-utils=2017.20180305-2 \
+ko.tex fonts-nanum fonts-nanum-extra
 
 # APT installation
 WORKDIR /requirements/apt
