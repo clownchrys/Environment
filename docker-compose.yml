@@ -19,8 +19,9 @@ services:
             - ./.envs/client.env
             - ./.envs/db_uri.env
         volumes: 
-            - ./client/workspace:/root/workspace
+            - ./client/Workspace:/root/Workspace
             - ./client/jupyter:/root/.jupyter
+            - ./client/pyenv/cache:/.pyenv/cache
         depends_on:
             - mysql
             - mongo

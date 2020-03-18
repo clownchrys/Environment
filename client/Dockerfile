@@ -7,8 +7,8 @@ ENV PYTHONUNBUFFERED=0
 RUN \
 mkdir -p /etc/apt && \
 mkdir -p /root/.pip
-ADD ./requirements/apt/sources.list /etc/apt
-ADD ./requirements/pip/pip.conf /root/.pip
+ADD .config/sources.list /etc/apt
+ADD .config/pip.conf /root/.pip
 
 # Locale
 RUN apt update && \
@@ -40,7 +40,7 @@ pyenv update && \
 echo '\n#pyenv\neval "$(pyenv virtualenv-init -)"\neval "$(pyenv init -)"' >> /root/.bashrc
 
 # Python version & pip
-ENV PYENV_PYTHON_MIRROR_URL="http://npm.taobao.org/mirrors/python"
+ADD ./pyenv/cache /.pyenv/cache
 RUN pyenv install 3.8.1 && \
 pyenv global 3.8.1 && \
 pip3 install -U pip
@@ -88,25 +88,26 @@ ko.tex fonts-nanum fonts-nanum-extra
 
 # APT installation
 WORKDIR /requirements/apt
-ADD ./requirements/apt/requirements.txt .
+ADD ./requirements/apt/* .
 RUN sed 's/#.*//' requirements.txt | xargs apt install -y
 
 # PIP installation
 WORKDIR /requirements/pip
-ADD ./requirements/pip/requirements.txt .
+ADD ./requirements/pip/* .
 RUN pip install -r requirements.txt
 
 # additional kernelspec (ref. https://jupyter-client.readthedocs.io/en/stable/kernels.html)
-RUN \
-/bin/bash -i -c \
-'VENV_VER="3.8.1" && \
-VENV_NAME="test" && \
-source /root/.bashrc && \
-pyenv virtualenv $VENV_VER $VENV_NAME && \
-pyenv activate $VENV_NAME && \
-pip install ipykernel && \
-python -m ipykernel install --user --name $VENV_NAME && \
-pyenv deactivate'
+# RUN \
+# /bin/bash -i -c \
+# 'VENV_VER="3.8.1" && \
+# VENV_NAME="test" && \
+# source /root/.bashrc && \
+# pyenv virtualenv $VENV_VER $VENV_NAME && \
+# pyenv activate $VENV_NAME && \
+# pip install ipykernel && \
+# pip install -r requirements_$VENV_NAME.txt && \
+# python -m ipykernel install --user --name $VENV_NAME && \
+# pyenv deactivate'
 
 # RUN jupyter kernelspec list
 # RUN jupyter kernelspec remove test

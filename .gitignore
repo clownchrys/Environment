@@ -1,8 +1,8 @@
 *.DS_*
-__pycache__
+.vscode/
+.ipynb_checkpoints/
+__pycache__/
 .Rhistory
-.vscode
-.ipynb_checkpoints
 
 client/workspace/**
 mysql/data/**

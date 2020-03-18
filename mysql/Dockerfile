@@ -1,8 +1,8 @@
 FROM mysql:8
 
 # locale
-RUN apt update
-RUN apt install -y locales-all
+RUN apt update && \
+apt install -y locales-all
 
 # timezone
 ENV TZ=Asia/Seoul
