@@ -113,5 +113,5 @@ RUN pip install -r requirements.txt
 # RUN jupyter kernelspec remove test
 
 # Run Jupyter
-WORKDIR /root/workspace
+WORKDIR /root/Workspace
 CMD ["jupyter", "lab"]
