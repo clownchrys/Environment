@@ -1,0 +1,8 @@
+# Essential Tools For Base Linux
+locales
+apt-utils
+
+# Essential Tools For Downloading
+curl
+wget
+git

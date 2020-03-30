@@ -1,0 +1,13 @@
+# nbconvert
+jupyter-nbconvert=5.3.1-1
+pandoc=1.19.2.4~dfsg-1build4
+texlive-xetex=2017.20180305-1
+texlive-fonts-recommended=2017.20180305-1
+texlive-generic-recommended=2017.20180305-1
+texlive-generic-extra=2017.20180305-1
+texlive-extra-utils=2017.20180305-2
+
+# convert to Korean
+ko.tex
+fonts-nanum
+fonts-nanum-extra

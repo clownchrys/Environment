@@ -21,7 +21,7 @@ services:
         volumes: 
             - ./client/Workspace:/root/Workspace
             - ./client/jupyter:/root/.jupyter
-            - ./client/pyenv/cache:/.pyenv/cache
+            - ./client/pyenv-cache:/root/.pyenv/cache
         depends_on:
             - mysql
             - mongo

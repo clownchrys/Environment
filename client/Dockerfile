@@ -1,117 +1,87 @@
 FROM ubuntu:18.04
 
-ENV DEBIAN_FRONTEND=noninteractive
-ENV PYTHONUNBUFFERED=0
+ARG HOME=/root
+ARG DEBIAN_FRONTEND=noninteractive
+ARG PYTHONUNBUFFERED=0
 
 # APT & PIP Kakao Server
-RUN \
-mkdir -p /etc/apt && \
-mkdir -p /root/.pip
-ADD .config/sources.list /etc/apt
-ADD .config/pip.conf /root/.pip
+COPY .config/sources.list /etc/apt/sources.list
+COPY .config/pip.conf ${HOME}/.pip/pip.conf
 
-# Locale
-RUN apt update && \
-apt install -y locales && \
-locale-gen ko_KR.UTF-8
+# APT & PIP Requirements
+ARG REQUIREMENTS_PATH=${HOME}/requirements
+COPY ./requirements/apt/* ${REQUIREMENTS_PATH}/apt/
+COPY ./requirements/pip/* ${REQUIREMENTS_PATH}/pip/
 
-# Timezone
-ENV TZ=Asia/Seoul
-RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && \
-echo $TZ > /etc/timezone
+# Essential APT Pacakages
+RUN apt update
+RUN sed 's/#.*//' ${REQUIREMENTS_PATH}/apt/requirements_essentials.txt | xargs apt install -y && apt update
 
-# Installation base tools
-RUN apt install -y \
-apt-utils \
-curl \
-wget \
-git
+# Locale & Timezone
+ARG LANG=ko_KR.UTF-8
+ARG TIMEZONE=Asia/Seoul
+RUN locale-gen ${LANG}
+RUN ln -snf /usr/share/zoneinfo/${TIMEZONE} /etc/localtime && echo ${TIMEZONE} > /etc/timezone
 
 # PYENV installation
-ENV PYENV_ROOT="/.pyenv" \
-    PATH="/.pyenv/bin:/.pyenv/shims:$PATH"
-
-RUN apt install -y \
-make build-essential libssl-dev zlib1g-dev libbz2-dev libreadline-dev \
-libsqlite3-dev llvm libncurses5-dev libncursesw5-dev xz-utils tk-dev
-
-RUN curl -L https://raw.githubusercontent.com/yyuu/pyenv-installer/master/bin/pyenv-installer | bash && \
-pyenv update && \
-echo '\n#pyenv\neval "$(pyenv virtualenv-init -)"\neval "$(pyenv init -)"' >> /root/.bashrc
+ENV PYENV_ROOT="${HOME}/.pyenv"
+ENV PATH="$PYENV_ROOT/shims:$PYENV_ROOT/plugins/pyenv-virtualenv/shims:$PYENV_ROOT/bin:$PATH"
+RUN sed 's/#.*//' ${REQUIREMENTS_PATH}/apt/requirements_pyenv.txt | xargs apt install -y
+RUN curl -L https://raw.githubusercontent.com/yyuu/pyenv-installer/master/bin/pyenv-installer | bash
+RUN \
+echo '' >> ${HOME}/.bashrc && \
+echo '#[PYENV]' >> ${HOME}/.bashrc && \
+echo 'eval "$(pyenv init -)"' >> ${HOME}/.bashrc && \
+echo 'eval "$(pyenv virtualenv-init -)"' >> ${HOME}/.bashrc
+RUN pyenv update
 
 # Python version & pip
-ADD ./pyenv/cache /.pyenv/cache
-RUN pyenv install 3.8.1 && \
-pyenv global 3.8.1 && \
-pip3 install -U pip
+ARG PYTHON_MAJOR=3.8
+ARG PYTHON_VERSION=3.8.2
+COPY ./pyenv-cache/* ${PYENV_ROOT}/cache/
+RUN pyenv install ${PYTHON_VERSION} && pyenv global ${PYTHON_VERSION}
+RUN pip install -U pip
 
 # Jupyter installation
-RUN pip install \
-ipykernel==5.1.4 \
-jupyter==1.0.0 \
-jupyter-client==6.0.0 \
-jupyter-console==6.1.0 \
-jupyter-core==4.6.3 \
-jupyterlab==1.2.6 \
-jupyterlab-server==1.0.7 \
-nbconvert==5.6.1
-
-# Python kernel installation
+RUN pip install -r ${REQUIREMENTS_PATH}/pip/requirements_jupyter.txt
 RUN python -m ipykernel install --user
 
-# R kernel installation
-RUN apt install -y r-base=3.4.4-1ubuntu1 && \
-Rscript -e "install.packages(c('repr', 'IRkernel', 'IRdisplay'), type='source')" && \
-Rscript -e "IRkernel::installspec()"
-
-# nodejs (For labextension)
-RUN curl -sL https://deb.nodesource.com/setup_12.x | bash && \
-apt install -y nodejs
+# R kernel installation (3.4.4-1ubuntu1)
+RUN apt install -y r-base
+RUN Rscript -e "install.packages(c('repr', 'IRkernel', 'IRdisplay'), type='source')"
+RUN Rscript -e "IRkernel::installspec()"
 
 # Jupyter build
-RUN jupyter labextension install @jupyter-widgets/jupyterlab-manager --no-build && \
+ARG NODEJS_VERSION=12
+RUN curl -sL https://deb.nodesource.com/setup_${NODEJS_VERSION}.x | bash && apt install -y nodejs
+RUN \
+jupyter labextension install @jupyter-widgets/jupyterlab-manager --no-build && \
 jupyter labextension install @jupyterlab/toc --no-build && \
 jupyter labextension install jupyterlab-drawio --no-build && \
 jupyter lab build
 
 # Jupyter-nbconvert installation
-ADD ./nbconvert/base.tplx /.pyenv/versions/3.8.1/lib/python3.8/site-packages/nbconvert/templates/latex/
-RUN apt install -y \
-jupyter-nbconvert=5.3.1-1 \
-pandoc=1.19.2.4~dfsg-1build4 \
-texlive-xetex=2017.20180305-1 \
-texlive-fonts-recommended=2017.20180305-1 \
-texlive-generic-recommended=2017.20180305-1 \
-texlive-generic-extra=2017.20180305-1 \
-texlive-extra-utils=2017.20180305-2 \
-ko.tex fonts-nanum fonts-nanum-extra
+COPY \
+./nbconvert-templates/* \
+${PYENV_ROOT}/versions/${PYTHON_VERSION}/lib/python${PYTHON_MAJOR}/site-packages/nbconvert/templates/latex/
+RUN sed 's/#.*//' ${REQUIREMENTS_PATH}/apt/requirements_nbconvert.txt | xargs apt install -y
 
-# APT installation
-WORKDIR /requirements/apt
-ADD ./requirements/apt/* .
-RUN sed 's/#.*//' requirements.txt | xargs apt install -y
+# APT & PIP Installation (Common Applications)
+RUN sed 's/#.*//' ${REQUIREMENTS_PATH}/apt/requirements.txt | xargs apt install -y
+RUN pip install -r ${REQUIREMENTS_PATH}/pip/requirements.txt
 
-# PIP installation
-WORKDIR /requirements/pip
-ADD ./requirements/pip/* .
-RUN pip install -r requirements.txt
-
-# additional kernelspec (ref. https://jupyter-client.readthedocs.io/en/stable/kernels.html)
-# RUN \
-# /bin/bash -i -c \
-# 'VENV_VER="3.8.1" && \
-# VENV_NAME="test" && \
-# source /root/.bashrc && \
-# pyenv virtualenv $VENV_VER $VENV_NAME && \
-# pyenv activate $VENV_NAME && \
-# pip install ipykernel && \
-# pip install -r requirements_$VENV_NAME.txt && \
-# python -m ipykernel install --user --name $VENV_NAME && \
-# pyenv deactivate'
-
-# RUN jupyter kernelspec list
-# RUN jupyter kernelspec remove test
+# Additional kernelspec (ref. https://jupyter-client.readthedocs.io/en/stable/kernels.html)
+ARG VENV_VER=3.7.5
+ARG VENV_NAME=opencv3
+RUN pyenv install ${VENV_VER}
+RUN /bin/bash -i -c \
+'pyenv virtualenv ${VENV_VER} ${VENV_NAME} && \
+pyenv activate ${VENV_NAME} && \
+pip install -U pip && pip install ipykernel && \
+python -m ipykernel install --user --name ${VENV_NAME} && \
+pip install -r ${REQUIREMENTS_PATH}/pip/venv_${VENV_NAME}.txt && \
+pyenv deactivate'
 
 # Run Jupyter
-WORKDIR /root/Workspace
-CMD ["jupyter", "lab"]
+WORKDIR ${HOME}/Workspace
+ENTRYPOINT [ "jupyter", "lab" ]
