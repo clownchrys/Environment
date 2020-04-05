@@ -71,17 +71,18 @@ RUN sed 's/#.*//' ${REQUIREMENTS_PATH}/apt/requirements.txt | xargs apt install 
 RUN pip install -r ${REQUIREMENTS_PATH}/pip/requirements.txt
 
 # Additional kernelspec (ref. https://jupyter-client.readthedocs.io/en/stable/kernels.html)
-ARG VENV_VER=3.7.5
-ARG VENV_NAME=opencv3
-RUN pyenv install ${VENV_VER}
-RUN /bin/bash -i -c \
-'pyenv virtualenv ${VENV_VER} ${VENV_NAME} && \
-pyenv activate ${VENV_NAME} && \
-pip install -U pip && pip install ipykernel && \
-python -m ipykernel install --user --name ${VENV_NAME} && \
-pip install -r ${REQUIREMENTS_PATH}/pip/venv_${VENV_NAME}.txt && \
-pyenv deactivate'
+COPY install_venv.sh ${HOME}/
+
+# ARG VENV_VER=3.8.2
+# ARG VENV_NAME=test1
+# ARG REQUIREMENTS=''
+# RUN ${HOME}/install_venv.sh ${VENV_VER} ${VENV_NAME} ${REQUIREMENTS}
+
+# ARG VENV_VER=3.8.2
+# ARG VENV_NAME=test2
+# ARG REQUIREMENTS=${REQUIREMENTS_PATH}/pip/test.txt
+# RUN ${HOME}/install_venv.sh ${VENV_VER} ${VENV_NAME} ${REQUIREMENTS}
 
 # Run Jupyter
-WORKDIR ${HOME}/Workspace
+WORKDIR ${HOME}
 ENTRYPOINT [ "jupyter", "lab" ]

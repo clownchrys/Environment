@@ -28,11 +28,11 @@ services:
         links: 
             - mysql
             - mongo
+        ports: 
+            - 8888:8888
         networks:
             default:
                 ipv4_address: 172.18.0.2
-        ports: 
-            - 8888:8888
 
     mysql:
         container_name: mysql
@@ -47,11 +47,11 @@ services:
             - --collation-server=utf8mb4_unicode_ci
         volumes: 
             - ./mysql/data:/var/lib/mysql
+        ports: 
+            - 3306:3306
         networks:
             default:
                 ipv4_address: 172.18.0.3
-        ports: 
-            - 3306:3306
 
     mongo:
         container_name: mongo
@@ -63,8 +63,8 @@ services:
             - ./.envs/mongo.env
         volumes: 
             - ./mongo/data:/data/db
+        ports: 
+            - 27017:27017
         networks:
             default:
                 ipv4_address: 172.18.0.4
-        ports: 
-            - 27017:27017
