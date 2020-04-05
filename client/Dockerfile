@@ -1,19 +1,17 @@
 FROM ubuntu:18.04
 
-ARG HOME=/root
 ARG DEBIAN_FRONTEND=noninteractive
 ARG PYTHONUNBUFFERED=0
+
+ARG HOME=/root
+ARG REQUIREMENTS_PATH=${HOME}/requirements
 
 # APT & PIP Kakao Server
 COPY .config/sources.list /etc/apt/sources.list
 COPY .config/pip.conf ${HOME}/.pip/pip.conf
 
-# APT & PIP Requirements
-ARG REQUIREMENTS_PATH=${HOME}/requirements
-COPY ./requirements/apt/* ${REQUIREMENTS_PATH}/apt/
-COPY ./requirements/pip/* ${REQUIREMENTS_PATH}/pip/
-
 # Essential APT Pacakages
+COPY ./requirements/apt/requirements_essentials.txt ${REQUIREMENTS_PATH}/apt/
 RUN apt update
 RUN sed 's/#.*//' ${REQUIREMENTS_PATH}/apt/requirements_essentials.txt | xargs apt install -y && apt update
 
@@ -24,6 +22,7 @@ RUN locale-gen ${LANG}
 RUN ln -snf /usr/share/zoneinfo/${TIMEZONE} /etc/localtime && echo ${TIMEZONE} > /etc/timezone
 
 # PYENV installation
+COPY ./requirements/apt/requirements_pyenv.txt ${REQUIREMENTS_PATH}/apt/
 ENV PYENV_ROOT="${HOME}/.pyenv"
 ENV PATH="$PYENV_ROOT/shims:$PYENV_ROOT/plugins/pyenv-virtualenv/shims:$PYENV_ROOT/bin:$PATH"
 RUN sed 's/#.*//' ${REQUIREMENTS_PATH}/apt/requirements_pyenv.txt | xargs apt install -y
@@ -43,6 +42,7 @@ RUN pyenv install ${PYTHON_VERSION} && pyenv global ${PYTHON_VERSION}
 RUN pip install -U pip
 
 # Jupyter installation
+COPY ./requirements/pip/requirements_jupyter.txt ${REQUIREMENTS_PATH}/pip/
 RUN pip install -r ${REQUIREMENTS_PATH}/pip/requirements_jupyter.txt
 RUN python -m ipykernel install --user
 
@@ -64,11 +64,18 @@ jupyter lab build
 COPY \
 ./nbconvert-templates/* \
 ${PYENV_ROOT}/versions/${PYTHON_VERSION}/lib/python${PYTHON_MAJOR}/site-packages/nbconvert/templates/latex/
+COPY ./requirements/apt/requirements_nbconvert.txt ${REQUIREMENTS_PATH}/apt/
 RUN sed 's/#.*//' ${REQUIREMENTS_PATH}/apt/requirements_nbconvert.txt | xargs apt install -y
 
 # APT & PIP Installation (Common Applications)
+COPY ./requirements/apt/requirements.txt ${REQUIREMENTS_PATH}/apt/
 RUN sed 's/#.*//' ${REQUIREMENTS_PATH}/apt/requirements.txt | xargs apt install -y
+COPY ./requirements/pip/requirements.txt ${REQUIREMENTS_PATH}/pip/
 RUN pip install -r ${REQUIREMENTS_PATH}/pip/requirements.txt
+
+# APT & PIP Requirements (Rests)
+COPY ./requirements/apt/* ${REQUIREMENTS_PATH}/apt/
+COPY ./requirements/pip/* ${REQUIREMENTS_PATH}/pip/
 
 # Additional kernelspec (ref. https://jupyter-client.readthedocs.io/en/stable/kernels.html)
 COPY install_venv.sh ${HOME}/

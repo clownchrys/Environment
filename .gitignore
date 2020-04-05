@@ -3,13 +3,12 @@
 .ipynb_checkpoints/
 __pycache__/
 .Rhistory
+.jupyterlab-workspace
 
 client/workspace/**
-client/jupyter/lab/workspaces/**
 mysql/data/**
 mongo/data/**
 
 !client/workspace/.keep
-!client/jupyter/lab/workspaces/.keep
 !mysql/data/.keep
 !mongo/data/.keep
